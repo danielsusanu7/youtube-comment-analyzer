@@ -7,7 +7,7 @@ from typing import Optional, Dict, List
 logging.basicConfig(level=logging.ERROR)
 
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos"
-API_KEY = "AIzaSyAiF6PLsdexy2O0q2NoxzBKZ1R8sVb3Bmg"
+API_KEY = "" # YOUR GOOGLE API KEY
 
 
 def extract_video_id(url: str) -> Optional[str]:
