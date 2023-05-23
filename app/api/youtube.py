@@ -30,14 +30,14 @@ async def get_video_comments(input_data: YoutubeVideoCommentsInput):
     filename = utils.clean_filename(video_title)
     excel_filename = f"{filename}.xlsx"
     
-    df = utils.process_comments_data(video_info["comments"])
+    df = utils.process_comments_data(video_id)
     
     output_folder = "data/comments"
     
     utils.save_data_to_excel(df, excel_filename, output_folder)
     
     response_data = {
-        "message": f"Successfully fetched {len(video_info['comments'])} comments and replies for '{video_title}'",
+        "message": f"Successfully fetched {len(df)} comments and replies for '{video_title}'",
         "excel_filename": excel_filename
     }
     
