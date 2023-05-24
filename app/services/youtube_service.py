@@ -67,198 +67,77 @@ def get_youtube_video_title(video_url: str) -> Optional[str]:
     return title
 
 
-# def fetch_video_comments(video_id: str) -> Dict[str, List[Dict]]:
-#     api_url = YOUTUBE_COMMENT_THREADS_URL
-#     comments = []
-    
-#     next_page_token = None
-    
-#     while True:
-#         params = {
-#             "part": "snippet,replies",
-#             "videoId": video_id,
-#             "key": API_KEY,
-#             "maxResults":100,
-#             "textFormat":"plainText",
-#             "pageToken":next_page_token,
-#         }
-        
-#         response = requests.get(api_url, params=params)
-#         data = response.json()
-        
-#         if response.status_code != 200:
-#             logging.warning(f"Error while accessing YouTube API: {response.status_code}")
-#             break
-        
-#         comment_threads = data.get("items", [])
-        
-#         for thread in comment_threads:
-#             top_level_comment = thread["snippet"]["topLevelComment"]
-            
-#             comments.append({
-#                 "comment_id": top_level_comment["id"],
-#                 "author": top_level_comment["snippet"]["authorDisplayName"],
-#                 "comment": top_level_comment["snippet"]["textDisplay"],
-#                 "time": top_level_comment["snippet"]["publishedAt"],
-#                 "likes": top_level_comment["snippet"]["likeCount"],
-#                 "reply_count": top_level_comment["snippet"].get("totalReplyCount", 0),
-#             })
-            
-#         next_page_token = data.get("nextPageToken")
-#         if not next_page_token:
-#             break
-    
-#     logging.info(f"Fetched {len(comments)} comments for video with ID {video_id}")
-    
-#     return {"video_id": video_id, "comments": comments}
-
-
-# def fetch_comment_replies(comment_id: str) -> List[Dict]:
-#     api_url = YOUTUBE_COMMENTS_URL
-#     replies = []
-    
-#     next_page_token = None
-    
-#     while True:
-#         params={
-#             "part": "snippet",
-#             "parentId": comment_id,
-#             "key": API_KEY,
-#             "maxResults": 100,
-#             "textFormat": "plainText",
-#             "pageToken": next_page_token,
-#         }
-        
-#         response = requests.get(api_url, params=params)
-#         data = response.json()
-        
-#         if response.status_code != 200:
-#             logging.warning(f"Error while accessing YouTube API: {response.status_code}")
-#             break
-        
-#         items = data.get("items", [])
-        
-#         for item in items:
-#             snippet = item["snippet"]
-#             replies.append({
-#                 "reply_author": snippet["authorDisplayName"],
-#                 "reply": snippet["textDisplay"],
-#                 "published": snippet["publishedAt"],
-#                 "updated": snippet["updatedAt"],
-#             })
-            
-#         next_page_token = data.get("nextPageToken")
-#         if not next_page_token:
-#             break
-        
-#     return replies
-#### ABOVE WORKS, BELOW DOESN'T
-
-
-def fetch_video_comments_and_replies(video_id: str) -> List[List[str]]:
-    result = [['Name', 'Comment', 'Time', 'Likes', 'Reply Count', 'Reply Author', 'Reply', 'Published', 'Updated']]
-
-    next_page_token = None
-
-    while True:
-        comments = fetch_video_comments(video_id, next_page_token)
-
-        for comment in comments["comments"]:
-            result.append([
-                comment["author"],
-                comment["comment"],
-                comment["time"],
-                comment["likes"],
-                comment["reply_count"],
-                '', '', '', '',
-            ])
-
-            if comment["reply_count"] > 0:
-                parent = comment["comment_id"]
-                next_page_token_rep = None
-
-                while True:
-                    reply_data = fetch_comment_replies(parent, next_page_token_rep)
-
-                    for reply in reply_data:
-                        result.append([
-                            '', '', '', '', '',
-                            reply["reply_author"],
-                            reply["reply"],
-                            reply["published"],
-                            reply["updated"],
-                        ])
-
-                    next_page_token_rep = reply_data.get("nextPageToken")
-                    if not next_page_token_rep:
-                        break
-
-        next_page_token = comments.get("nextPageToken")
-        if not next_page_token:
-            break
-
-    return result
-
-
-def fetch_video_comments(video_id: str, next_page_token: str = None) -> Dict[str, Union[str, List[Dict]]]:
+def fetch_video_comments(video_id: str) -> Dict[str, List[Dict]]:
     api_url = YOUTUBE_COMMENT_THREADS_URL
     comments = []
-
-    params = {
-        "part": "snippet,replies",
-        "videoId": video_id,
-        "key": API_KEY,
-        "maxResults": 100,
-        "textFormat": "plainText",
-        "pageToken": next_page_token,
-    }
-
-    response = requests.get(api_url, params=params)
-    data = response.json()
-
-    if response.status_code != 200:
-        logging.warning(f"Error while accessing YouTube API: {response.status_code}")
-
-    else:
+    
+    next_page_token = None
+    
+    while True:
+        params = {
+            "part": "snippet",
+            "videoId": video_id,
+            "key": API_KEY,
+            "maxResults":100,
+            "textFormat":"plainText",
+            "pageToken":next_page_token,
+        }
+        
+        response = requests.get(api_url, params=params)
+        data = response.json()
+        
+        if response.status_code != 200:
+            logging.warning(f"Error while accessing YouTube API: {response.status_code}")
+            break
+        
         comment_threads = data.get("items", [])
-
+        
         for thread in comment_threads:
             top_level_comment = thread["snippet"]["topLevelComment"]
-
+            
             comments.append({
                 "comment_id": top_level_comment["id"],
                 "author": top_level_comment["snippet"]["authorDisplayName"],
                 "comment": top_level_comment["snippet"]["textDisplay"],
                 "time": top_level_comment["snippet"]["publishedAt"],
                 "likes": top_level_comment["snippet"]["likeCount"],
-                "reply_count": top_level_comment["snippet"].get("totalReplyCount", 0),
+                # "reply_count": top_level_comment["snippet"].get("totalReplyCount", 0),
             })
+            
+        next_page_token = data.get("nextPageToken")
+        if not next_page_token:
+            break
+    
+    logging.info(f"Fetched {len(comments)} comments for video with ID {video_id}")
+    
+    return {"video_id": video_id, "comments": comments}
 
-    return {"video_id": video_id, "comments": comments, "nextPageToken": data.get("nextPageToken")}
 
-
-def fetch_comment_replies(comment_id: str, next_page_token: str = None) -> List[Dict]:
+def fetch_comment_replies(comment_id: str) -> List[Dict]:
     api_url = YOUTUBE_COMMENTS_URL
     replies = []
-
-    params = {
-        "part": "snippet",
-        "parentId": comment_id,
-        "key": API_KEY,
-        "maxResults": 100,
-        "textFormat": "plainText",
-        "pageToken": next_page_token,
-    }
-
-    response = requests.get(api_url, params=params)
-    data = response.json()
-
-    if response.status_code != 200:
-        logging.warning(f"Error while accessing YouTube API: {response.status_code}")
-
-    else:
+    
+    next_page_token = None
+    
+    while True:
+        params={
+            "part": "snippet",
+            "parentId": comment_id,
+            "key": API_KEY,
+            "maxResults": 100,
+            "textFormat": "plainText",
+            "pageToken": next_page_token,
+        }
+        
+        response = requests.get(api_url, params=params)
+        data = response.json()
+        
+        if response.status_code != 200:
+            logging.warning(f"Error while accessing YouTube API: {response.status_code}")
+            break
+        
         items = data.get("items", [])
-
+        
         for item in items:
             snippet = item["snippet"]
             replies.append({
@@ -267,8 +146,129 @@ def fetch_comment_replies(comment_id: str, next_page_token: str = None) -> List[
                 "published": snippet["publishedAt"],
                 "updated": snippet["updatedAt"],
             })
+            
+        next_page_token = data.get("nextPageToken")
+        if not next_page_token:
+            break
+        
+    return replies
+#### ABOVE WORKS, BELOW DOESN'T
 
-    return { "replies": replies, "nextPageToken": data.get("nextPageToken")}
+
+# def fetch_video_comments_and_replies(video_id: str) -> List[List[str]]:
+#     result = [['Name', 'Comment', 'Time', 'Likes', 'Reply Count', 'Reply Author', 'Reply', 'Published', 'Updated']]
+
+#     next_page_token = None
+
+#     while True:
+#         comments = fetch_video_comments(video_id, next_page_token)
+
+#         for comment in comments["comments"]:
+#             result.append([
+#                 comment["author"],
+#                 comment["comment"],
+#                 comment["time"],
+#                 comment["likes"],
+#                 comment["reply_count"],
+#                 '', '', '', '',
+#             ])
+
+#             if comment["reply_count"] > 0:
+#                 parent = comment["comment_id"]
+#                 next_page_token_rep = None
+
+#                 while True:
+#                     reply_data = fetch_comment_replies(parent, next_page_token_rep)
+
+#                     for reply in reply_data:
+#                         result.append([
+#                             '', '', '', '', '',
+#                             reply["reply_author"],
+#                             reply["reply"],
+#                             reply["published"],
+#                             reply["updated"],
+#                         ])
+
+#                     next_page_token_rep = reply_data.get("nextPageToken")
+#                     if not next_page_token_rep:
+#                         break
+
+#         next_page_token = comments.get("nextPageToken")
+#         if not next_page_token:
+#             break
+
+#     return result
+
+
+# def fetch_video_comments(video_id: str, next_page_token: str = None) -> Dict[str, Union[str, List[Dict]]]:
+#     api_url = YOUTUBE_COMMENT_THREADS_URL
+#     comments = []
+
+#     params = {
+#         "part": "snippet,replies",
+#         "videoId": video_id,
+#         "key": API_KEY,
+#         "maxResults": 100,
+#         "textFormat": "plainText",
+#         "pageToken": next_page_token,
+#     }
+
+#     response = requests.get(api_url, params=params)
+#     data = response.json()
+
+#     if response.status_code != 200:
+#         logging.warning(f"Error while accessing YouTube API: {response.status_code}")
+
+#     else:
+#         comment_threads = data.get("items", [])
+
+#         for thread in comment_threads:
+#             top_level_comment = thread["snippet"]["topLevelComment"]
+
+#             comments.append({
+#                 "comment_id": top_level_comment["id"],
+#                 "author": top_level_comment["snippet"]["authorDisplayName"],
+#                 "comment": top_level_comment["snippet"]["textDisplay"],
+#                 "time": top_level_comment["snippet"]["publishedAt"],
+#                 "likes": top_level_comment["snippet"]["likeCount"],
+#                 "reply_count": top_level_comment["snippet"].get("totalReplyCount", 0),
+#             })
+
+#     return {"video_id": video_id, "comments": comments, "nextPageToken": data.get("nextPageToken")}
+
+
+# def fetch_comment_replies(comment_id: str, next_page_token: str = None) -> List[Dict]:
+#     api_url = YOUTUBE_COMMENTS_URL
+#     replies = []
+
+#     params = {
+#         "part": "snippet",
+#         "parentId": comment_id,
+#         "key": API_KEY,
+#         "maxResults": 100,
+#         "textFormat": "plainText",
+#         "pageToken": next_page_token,
+#     }
+
+#     response = requests.get(api_url, params=params)
+#     data = response.json()
+
+#     if response.status_code != 200:
+#         logging.warning(f"Error while accessing YouTube API: {response.status_code}")
+
+#     else:
+#         items = data.get("items", [])
+
+#         for item in items:
+#             snippet = item["snippet"]
+#             replies.append({
+#                 "reply_author": snippet["authorDisplayName"],
+#                 "reply": snippet["textDisplay"],
+#                 "published": snippet["publishedAt"],
+#                 "updated": snippet["updatedAt"],
+#             })
+
+#     return { "replies": replies, "nextPageToken": data.get("nextPageToken")}
 
 
 #### THIRD TRY

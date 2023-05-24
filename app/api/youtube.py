@@ -30,7 +30,7 @@ async def get_video_comments(input_data: YoutubeVideoCommentsInput):
     filename = utils.clean_filename(video_title)
     excel_filename = f"{filename}.xlsx"
     
-    df = utils.process_comments_data(video_id)
+    df = utils.process_comments_data(video_info["comments"])
     
     output_folder = "data/comments"
     
